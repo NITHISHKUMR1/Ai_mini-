@@ -1,0 +1,94 @@
+#PROGRAM(PYTHON CODE):
+
+import tkinter as tk
+from tkinter import messagebox
+
+# DFS algorithm for water jug problem
+def dfs_water_jug(jug1, jug2, goal):
+    stack = [((0, 0), [])]  # Stack of ((jug1, jug2), path)
+    visited = set()
+
+    while stack:
+        (j1, j2), path = stack.pop()
+
+        if (j1, j2) in visited:
+            continue
+
+        visited.add((j1, j2))
+        path = path + [(j1, j2)]
+
+        if j1 == goal or j2 == goal:
+            return path
+
+        # Possible next states
+        next_states = [
+            (jug1, j2),  # Fill jug1
+            (j1, jug2),  # Fill jug2
+            (0, j2),  # Empty jug1
+            (j1, 0),  # Empty jug2
+            (max(j1 - (jug2 - j2), 0), min(j2 + j1, jug2)),  # Pour jug1 -> jug2
+            (min(j1 + j2, jug1), max(j2 - (jug1 - j1), 0))  # Pour jug2 -> jug1
+        ]
+        for state in next_states:
+            if state not in visited:
+                stack.append((state, path))
+
+    return None  # No solution
+
+# Tkinter GUI
+class WaterJugApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Water Jug Problem")
+
+        # Labels and Entries for jug capacities and goal
+        self.label1 = tk.Label(root, text="Jug 1 Capacity:")
+        self.label1.grid(row=0, column=0)
+        self.jug1_entry = tk.Entry(root)
+        self.jug1_entry.grid(row=0, column=1)
+
+        self.label2 = tk.Label(root, text="Jug 2 Capacity:")
+        self.label2.grid(row=1, column=0)
+        self.jug2_entry = tk.Entry(root)
+        self.jug2_entry.grid(row=1, column=1)
+
+        self.label3 = tk.Label(root, text="Goal Amount:")
+        self.label3.grid(row=2, column=0)
+        self.goal_entry = tk.Entry(root)
+        self.goal_entry.grid(row=2, column=1)
+
+        # Button to start solving the problem
+        self.solve_button = tk.Button(root, text="Solve", command=self.solve)
+        self.solve_button.grid(row=3, column=0, columnspan=2)
+        # Text area to display the result
+        self.result_text = tk.Text(root, height=10, width=50)
+        self.result_text.grid(row=4, column=0, columnspan=2)
+
+    def solve(self):
+        # Get user inputs
+        try:
+            jug1_capacity = int(self.jug1_entry.get())
+            jug2_capacity = int(self.jug2_entry.get())
+            goal_amount = int(self.goal_entry.get())
+        except ValueError:
+            messagebox.showerror("Input Error", "Please enter valid integer values.")
+            return
+
+        # Run the DFS algorithm
+        result = dfs_water_jug(jug1_capacity, jug2_capacity, goal_amount)
+
+        # Clear the result text box and display the result
+        self.result_text.delete(1.0, tk.END)
+
+        if result is None:
+            self.result_text.insert(tk.END, "No solution found.")
+        else:
+            self.result_text.insert(tk.END, "Steps to reach the goal:\n")
+            for step in result:
+                self.result_text.insert(tk.END, f"Jug1: {step[0]}, Jug2: {step[1]}\n")
+
+# Create and run the Tkinter application
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = WaterJugApp(root)
+    root.mainloop()
